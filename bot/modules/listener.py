@@ -257,22 +257,22 @@ class MirrorLeechListener:
                         share_urls = f'{INDEX_URL}/{url_path}?a=view'
                         buttons.buildbutton("🌐 View Link", share_urls)
             sendMarkup(msg, self.bot, self.message, buttons.build_menu(2))
-        if MIRROR_LOGS:	
-            try:	
-                for chatid in MIRROR_LOGS:	
-                    bot.sendMessage(chat_id=chatid, text=msg,	
-                                    reply_markup=InlineKeyboardMarkup(buttons.build_menu(2)),	
-                                    parse_mode=ParseMode.HTML)	
-            except Exception as e:	
-                LOGGER.warning(e)	
-        if BOT_PM and self.message.chat.type != 'private':	
-            try:	
-                bot.sendMessage(chat_id=self.user_id, text=msg,	
-                                reply_markup=InlineKeyboardMarkup(buttons.build_menu(2)),	
-                                parse_mode=ParseMode.HTML)	
-            except Exception as e:	
-                LOGGER.warning(e)	
-                return
+            if MIRROR_LOGS:
+                try:
+                    for chatid in MIRROR_LOGS:
+                        bot.sendMessage(chat_id=chatid, text=msg,
+                                        reply_markup=InlineKeyboardMarkup(buttons.build_menu(2)),
+                                        parse_mode=ParseMode.HTML)
+                except Exception as e:
+                    LOGGER.warning(e)
+            if BOT_PM and self.message.chat.type != 'private':
+                try:
+                    bot.sendMessage(chat_id=self.user_id, text=msg,
+                                    reply_markup=InlineKeyboardMarkup(buttons.build_menu(2)),
+                                    parse_mode=ParseMode.HTML)
+                except Exception as e:
+                    LOGGER.warning(e)
+                    return
             if self.seed:
                 if self.isZip:
                     clean_target(f"{self.dir}/{name}")
