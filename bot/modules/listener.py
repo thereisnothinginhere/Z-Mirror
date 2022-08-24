@@ -273,7 +273,7 @@ class MirrorLeechListener:
                                 parse_mode=ParseMode.HTML)	
             except Exception as e:	
                 LOGGER.warning(e)	
-                return)
+                return
             if self.seed:
                 if self.isZip:
                     clean_target(f"{self.dir}/{name}")
