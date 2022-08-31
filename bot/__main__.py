@@ -1,11 +1,11 @@
 from signal import signal, SIGINT
 from os import path as ospath, remove as osremove, execl as osexecl
 from subprocess import run as srun, check_output
-from psutil import disk_usage, cpu_percent, swap_memory, cpu_count, virtual_memory, net_io_counters, boot_time
+from psutil import *
 from time import time
 from sys import executable
 from telegram.ext import CommandHandler
-from bot import bot, dispatcher, updater, botStartTime, IGNORE_PENDING_REQUESTS, LOGGER, Interval, INCOMPLETE_TASK_NOTIFIER, DB_URI, alive, app, main_loop, AUTHORIZED_CHATS
+from bot import *
 from .helper.ext_utils.fs_utils import start_cleanup, clean_all, exit_clean_up
 from .helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
 from .helper.ext_utils.db_handler import DbManger
@@ -13,13 +13,13 @@ from .helper.telegram_helper.bot_commands import BotCommands
 from .helper.telegram_helper.message_utils import sendMessage, sendMarkup, editMessage, sendLogFile
 from .helper.telegram_helper.filters import CustomFilters
 from .helper.telegram_helper.button_build import ButtonMaker
-from .modules import authorize, list, cancel_mirror, mirror_status, mirror_leech, clone, ytdlp, shell, eval, delete, count, leech_settings, search, rss, bt_select, sleep
+from .modules import *
 
 def progress_bar(percentage):
     p_used = '⬢'
     p_total = '⬡'
     if isinstance(percentage, str):
-        return 'NaN'
+        return '-'
     try:
         percentage=int(percentage)
     except:
@@ -33,25 +33,17 @@ def stats(update, context):
         last_commit = check_output(["git log -1 --date=short --pretty=format:'%cr \n<b>Version: </b> %cd'"], shell=True).decode()
     else:
         last_commit = 'No UPSTREAM_REPO'
-    currentTime = get_readable_time(time() - botStartTime)
     total, used, free, disk= disk_usage('/')
-    total = get_readable_file_size(total)
-    used = get_readable_file_size(used)
-    free = get_readable_file_size(free)
-    sent = get_readable_file_size(net_io_counters().bytes_sent)
-    recv = get_readable_file_size(net_io_counters().bytes_recv)
-    cpuUsage = cpu_percent(interval=1)
     memory = virtual_memory()
-    mem_p = memory.percent
     stats = f'<b><i><u>Bot Statistics</u></i></b>\n\n'\
-            f'<b>CPU</b>:  {progress_bar(cpuUsage)} {cpuUsage}%\n' \
-            f'<b>RAM</b>: {progress_bar(mem_p)} {mem_p}%\n' \
+            f'<b>CPU</b>:  {progress_bar(cpu_percent(interval=1))} {cpu_percent(interval=1)}%\n' \
+            f'<b>RAM</b>: {progress_bar(memory.percent)} {memory.percent}%\n' \
             f'<b>DISK</b>: {progress_bar(disk)} {disk}%\n\n' \
             f'<b>Updated:</b> {last_commit}\n'\
-            f'<b>I am Working For:</b> <code>{currentTime}</code>\n\n'\
-            f'<b>Total Disk:</b> <code>{total}</code> [{disk}% In use]\n'\
-            f'<b>Used:</b> <code>{used}</code> | <b>Free:</b> <code>{free}</code>\n'\
-            f'<b>T-UL:</b> <code>{sent}</code> | <b>T-DL:</b> <code>{recv}</code>\n'
+            f'<b>I am Working For:</b> <code>{get_readable_time(time() - botStartTime)}</code>\n\n'\
+            f'<b>Total Disk:</b> <code>{get_readable_file_size(total)}</code> [{disk}% In use]\n'\
+            f'<b>Used:</b> <code>{get_readable_file_size(used)}</code> | <b>Free:</b> <code>{get_readable_file_size(free)}</code>\n'\
+            f'<b>T-UL:</b> <code>{get_readable_file_size(net_io_counters().bytes_sent)}</code> | <b>T-DL:</b> <code>{get_readable_file_size(net_io_counters().bytes_recv)}</code>\n'
     sendMessage(stats, context.bot, update.message)
 
 def start(update, context):
@@ -63,12 +55,12 @@ def start(update, context):
     reply_markup = InlineKeyboardMarkup(buttons.build_menu(2))
     if CustomFilters.authorized_user(update) or CustomFilters.authorized_chat(update):
         start_string = f'''
-Welcome | BOT is ready for you
+Welcome | {TITLE_NAME} BOT is ready for you
 Type /{BotCommands.HelpCommand} to get a list of available commands
-'''
+                        '''
         sendMarkup(start_string, context.bot, update.message, reply_markup)
     else:
-        sendMarkup('Sorry, You cannot use me', context.bot, update.message, reply_markup)
+        sendMarkup('Sorry, You cannot use me! Make your own.', context.bot, update.message, reply_markup)
 
 def restart(update, context):
     restart_message = sendMessage("Restarting...", context.bot, update.message)
@@ -84,13 +76,11 @@ def restart(update, context):
         f.write(f"{restart_message.chat.id}\n{restart_message.message_id}\n")
     osexecl(executable, executable, "-m", "bot")
 
-
 def ping(update, context):
     start_time = int(round(time() * 1000))
     reply = sendMessage("Starting Ping", context.bot, update.message)
     end_time = int(round(time() * 1000))
     editMessage(f'{end_time - start_time} ms', reply)
-
 
 def log(update, context):
     sendLogFile(context.bot, update.message)
@@ -263,5 +253,8 @@ def main():
 
 app.start()
 main()
-
+if USER_SESSION_STRING:
+    app_session.run()
+else:
+    pass
 main_loop.run_forever()

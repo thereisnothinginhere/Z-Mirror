@@ -1,14 +1,13 @@
 from telegram.ext import CommandHandler, CallbackQueryHandler
 from time import sleep
 from threading import Thread
-from bot import download_dict, dispatcher, download_dict_lock, SUDO_USERS, OWNER_ID, AUTO_DELETE_MESSAGE_DURATION
+from bot import *
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, auto_delete_message
 from bot.helper.ext_utils.bot_utils import getDownloadByGid, getAllDownload
 from bot.helper.ext_utils.bot_utils import MirrorStatus
 from bot.helper.telegram_helper import button_build
-
 
 def cancel_mirror(update, context):
     user_id = update.message.from_user.id
@@ -83,7 +82,6 @@ def cancel_all_update(update, context):
         cancel_all(data[1])
     else:
         query.answer(text="You don't have permission to use these buttons!", show_alert=True)
-
 
 
 cancel_mirror_handler = CommandHandler(BotCommands.CancelMirror, cancel_mirror,

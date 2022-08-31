@@ -6,13 +6,11 @@ from threading import RLock
 from time import time
 from re import search as re_search
 from json import loads as jsonloads
-
 from bot import download_dict_lock, download_dict
 from bot.helper.telegram_helper.message_utils import sendStatusMessage
 from ..status_utils.yt_dlp_download_status import YtDlpDownloadStatus
 
 LOGGER = getLogger(__name__)
-
 
 class MyLogger:
     def __init__(self, obj):
@@ -36,7 +34,6 @@ class MyLogger:
     def error(msg):
         if msg != "ERROR: Cancelling...":
             LOGGER.error(msg)
-
 
 class YoutubeDLHelper:
     def __init__(self, listener):

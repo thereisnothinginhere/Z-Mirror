@@ -2,14 +2,15 @@ from threading import Thread
 from telegram.ext import CommandHandler, CallbackQueryHandler
 from time import sleep
 from re import split as re_split
-from bot import DOWNLOAD_DIR, dispatcher
-from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, editMessage
+from bot import *
+from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, editMessage, auto_delete_message, auto_delete_upload_message
 from bot.helper.telegram_helper import button_build
 from bot.helper.ext_utils.bot_utils import get_readable_file_size, is_url
 from bot.helper.mirror_utils.download_utils.yt_dlp_download_helper import YoutubeDLHelper
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from .listener import MirrorLeechListener
+from bot.helper.telegram_helper.button_build import ButtonMaker
 
 listener_dict = {}
 
@@ -18,6 +19,40 @@ def _ytdl(bot, message, isZip=False, isLeech=False):
     user_id = message.from_user.id
     msg_id = message.message_id
     multi = 0
+    buttons = ButtonMaker()
+    uname = message.from_user.mention_html(message.from_user.first_name)
+
+    if FSUB:
+        try:
+            user = bot.get_chat_member(FSUB_CHANNEL_ID, message.from_user.id)
+            if user.status == "left":
+                buttons.buildbutton(f"{TITLE_NAME}", f"https://t.me/{CHANNEL_USERNAME}")
+                reply_markup = f"<b>Dear</b> {uname},\n\n<b>Please join {TITLE_NAME} to use me.</b>\n\nDo your tasks again after join."
+                mesg = sendMarkup(reply_markup, bot, message, (buttons.build_menu(1)))
+                sleep(60)
+                mesg.delete()
+                message.delete()
+                return
+        except Exception as e:
+            LOGGER.info(str(e))
+
+    if BOT_PM and message.chat.type != 'private':
+        try:
+            msg1 = f'Added your Requested link to Download\n'
+            send = bot.sendMessage(message.from_user.id, text=msg1)
+            send.delete()
+        except Exception as e:
+            LOGGER.warning(e)
+            bot_d = bot.get_me()
+            b_uname = bot_d.username
+            botstart = f"http://t.me/{b_uname}"
+            buttons.buildbutton("Click Here to Start Me", f"{botstart}")
+            startwarn = f"<b>Dear {uname}, \n\nPlease come in my PM\n\nand drop a nice message for me.</b>\n\nThen do your tasks again."
+            mesg = sendMarkup(startwarn, bot, message, buttons.build_menu(2))
+            sleep(60)
+            mesg.delete()
+            message.delete()
+            return
 
     link = mssg.split()
     if len(link) > 1:
