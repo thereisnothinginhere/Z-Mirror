@@ -8,6 +8,7 @@ from html import escape
 from bot import *
 from bot.helper.ext_utils.fs_utils import get_base_name, get_path_size, split_file, clean_download, clean_target
 from bot.helper.ext_utils.exceptions import NotSupportedExtractionArchive
+from bot.helper.ext_utils.shortenurl import short_url
 from bot.helper.mirror_utils.status_utils.extract_status import ExtractStatus
 from bot.helper.mirror_utils.status_utils.zip_status import ZipStatus
 from bot.helper.mirror_utils.status_utils.split_status import SplitStatus
@@ -20,6 +21,7 @@ from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.ext_utils.db_handler import DbManger
 from bot.helper.ext_utils.telegraph_helper import telegraph
 from bot.helper.ext_utils.bot_utils import is_url, is_magnet
+
 class MirrorLeechListener:
     def __init__(self, bot, message, isZip=False, extract=False, isQbit=False, isLeech=False, pswd=None, tag=None, select=False, seed=False):
         self.bot = bot
@@ -221,21 +223,22 @@ class MirrorLeechListener:
         if self.message.chat.type != 'private' and AUTO_DELETE_UPLOAD_MESSAGE_DURATION != -1 and reply_to is not None:
             try:
                 reply_to.delete()
-            except exception as err:
+            except Exception as e:
+                LOGGER.warning(e)
                 pass
-        if self.isLeech:
-            uptype = "files"
-        else:
-            uptype = "links"
         msg = f"<b>Name: </b><code>{escape(name)}</code>\n\n<b>Size: </b>{size}"
         if BOT_PM and FORCE_BOT_PM and not self.isPrivate:
-            botpm = f"<b>\n\nHey {self.tag}!, I have sent your {uptype} in PM.</b>\n"
+            botpm = f"<b>\n\nHey {self.tag}!, I have sent your stuff in PM.</b>\n"
             buttons = ButtonMaker()
             b_uname = bot.get_me().username
             botstart = f"http://t.me/{b_uname}"
-            buttons.buildbutton(f"View {uptype} in PM", f"{botstart}")
+            buttons.buildbutton("View links in PM", f"{botstart}")
             sendMarkup(msg + botpm, self.bot, self.message, buttons.build_menu(2))
-            self.message.delete()
+            try:
+                self.message.delete()
+            except Exception as e:
+                    LOGGER.warning(e)
+            pass
             reply_to = self.message.reply_to_message
             if reply_to is not None and AUTO_DELETE_UPLOAD_MESSAGE_DURATION == -1:
                 reply_to.delete()
@@ -247,7 +250,7 @@ class MirrorLeechListener:
                     source_link = message_args[1]
                     if is_magnet(source_link):
                         link = telegraph.create_page(
-                        title='Helios-Mirror Source Link',
+                        title=f'{TITLE_NAME} Source Link',
                         content=source_link,
                     )["path"]
                         buttons.buildbutton(f"🔗 Source Link", f"https://graph.org/{link}")
@@ -263,7 +266,7 @@ class MirrorLeechListener:
                             source_link = reply_text.strip()
                             if is_magnet(source_link):
                                 link = telegraph.create_page(
-                                    title='Helios-Mirror Source Link',
+                                    title=f'{TITLE_NAME} Source Link',
                                     content=source_link,
                                 )["path"]
                                 buttons.buildbutton(f"🔗 Source Link", f"https://graph.org/{link}")
@@ -315,6 +318,7 @@ class MirrorLeechListener:
                 msg += f'\n<b>Files: </b>{files}'
             buttons = ButtonMaker()
             msg += f'\n\n<b>cc: </b>{self.tag}'
+            link = short_url(link)
             buttons.buildbutton("☁️ Drive Link", link)
             LOGGER.info(f'Done Uploading {name}')
             if INDEX_URL is not None:
@@ -322,18 +326,21 @@ class MirrorLeechListener:
                 share_url = f'{INDEX_URL}/{url_path}'
                 if typ == "Folder":
                     share_url += '/'
+                    share_url = short_url(share_url)
                     buttons.buildbutton("⚡ Index Link", share_url)
                 else:
+                    share_url = short_url(share_url)
                     buttons.buildbutton("⚡ Index Link", share_url)
                     if VIEW_LINK:
                         share_urls = f'{INDEX_URL}/{url_path}?a=view'
+                        share_urls = short_url(share_urls)
                         buttons.buildbutton("🌐 View Link", share_urls)
                     if SOURCE_LINK is True:
                         try:
                             mesg = message_args[1]
                             if is_magnet(mesg):
                                 link = telegraph.create_page(
-                                    title='Helios-Mirror Source Link',
+                                    title=f'{TITLE_NAME} Source Link',
                                     content=mesg,
                                 )["path"]
                                 buttons.buildbutton(f"🔗 Source Link", f"https://graph.org/{link}")
@@ -355,7 +362,7 @@ class MirrorLeechListener:
                                 source_link = reply_text.strip()
                                 if is_magnet(source_link):
                                     link = telegraph.create_page(
-                                        title='Helios-Mirror Source Link',
+                                        title=f'{TITLE_NAME} Source Link',
                                         content=source_link,
                                     )["path"]
                                     buttons.buildbutton(f"🔗 Source Link", f"https://graph.org/{link}")
@@ -364,7 +371,7 @@ class MirrorLeechListener:
                         except Exception as e:
                             LOGGER.warning(e)
                             pass
-            if FORCE_BOT_PM is False or self.message.chat.type == 'private' :
+            if FORCE_BOT_PM is False or self.message.chat.type == 'private':
                 upldmsg = sendMarkup(msg, self.bot, self.message, buttons.build_menu(2))
                 Thread(target=auto_delete_upload_message, args=(self.bot, self.message, upldmsg)).start()
             if MIRROR_LOGS:
@@ -408,7 +415,8 @@ class MirrorLeechListener:
                 reply_to.delete()
             else:
                 pass
-        except:
+        except Exception as e:
+            LOGGER.warning(e)
             pass
         error = error.replace('<', ' ').replace('>', ' ')
         clean_download(self.dir)
