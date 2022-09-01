@@ -7,7 +7,6 @@ from os import remove
 from bot import *
 from bot.helper.ext_utils.bot_utils import get_readable_message, setInterval
 
-
 def sendMessage(text: str, bot, message: Message):
     try:
         return bot.sendMessage(message.chat_id,
@@ -108,7 +107,17 @@ def auto_delete_message(bot, cmd_message: Message, bot_message: Message):
             deleteMessage(bot, bot_message)
         except AttributeError:
             pass
-
+def auto_delete_upload_message(bot, cmd_message: Message, bot_message: Message):
+    if cmd_message.chat.type == 'private':
+        pass
+    elif AUTO_DELETE_UPLOAD_MESSAGE_DURATION != -1:
+        sleep(AUTO_DELETE_UPLOAD_MESSAGE_DURATION)
+        try:
+            # Skip if None is passed meaning we don't want to delete bot or cmd message
+            deleteMessage(bot, cmd_message)
+            deleteMessage(bot, bot_message)
+        except AttributeError:
+            pass
 def delete_all_messages():
     with status_reply_dict_lock:
         for data in list(status_reply_dict.values()):

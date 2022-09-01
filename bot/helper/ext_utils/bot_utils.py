@@ -1,10 +1,10 @@
-from re import findall as re_findall
+from re import findall as re_findall, match as re_match
 from threading import Thread, Event
 from time import time
 from math import ceil
 from html import escape
 import psutil
-from psutil import virtual_memory, cpu_percent, disk_usage
+from psutil import *
 from requests import head as rhead
 from urllib.request import urlopen
 from bot import *
@@ -182,7 +182,7 @@ def get_readable_message():
                 globals()['COUNT'] -= STATUS_LIMIT
                 globals()['PAGE_NO'] -= 1
         for index, download in enumerate(list(download_dict.values())[COUNT:], start=1):
-            msg += f"\n\n<b>File Name:</b> <code>{escape(str(download.name()))}</code>"
+            msg += f'\n\n<b>File Name:</b> <a href="https://t.me/c/{str(download.message.chat.id)[4:]}/{download.message.message_id}">{escape(str(download.name()))}</a>'
             msg += f"\n\n<b>Status:</b> <code>{download.status()}</code> <b>Using:</b> <code>{download.eng()}</code>"
             if download.status() not in [MirrorStatus.STATUS_SEEDING]:
                 msg += f"\n{get_progress_bar_string(download)} ↣ {download.progress()}"
@@ -201,7 +201,7 @@ def get_readable_message():
                 elif download.status() == MirrorStatus.STATUS_SPLITTING:
                     msg += f"\n<b>Splitted:</b> <code>{get_readable_file_size(download.processed_bytes())}</code> of <code>{download.size()}</code>"
                 msg += f"\n<b>ETA:</b> <code>{download.eta()}</code> <b>Elapsed:</b> <code>{get_readable_time(time() - download.message.date.timestamp())}</code>"
-                msg += f'\n<b>Speed:</b> <code>{download.speed()}</code> <b>Task By:</b> <a href="https://t.me/c/{str(download.message.chat.id)[4:]}/{download.message.message_id}">{download.message.from_user.first_name}</a>'
+                msg += f'\n<b>Speed:</b> <code>{download.speed()}</code> <b>Task By:</b> {download.message.from_user.mention_html(download.message.from_user.first_name)}'
                 if hasattr(download, 'seeders_num'):
                     try:
                         msg += f"\n<b>Seeders:</b> {download.seeders_num()} | <b>Leechers:</b> {download.leechers_num()}"
@@ -319,6 +319,13 @@ def get_mega_link_type(url: str):
 def is_magnet(url: str):
     magnet = re_findall(MAGNET_REGEX, url)
     return bool(magnet)
+
+def is_appdrive_link(url: str):
+    url = re_match(r'https?://(?:\S*\.)?(?:appdrive|driveapp)\.\S+', url)
+    return bool(url)
+def is_gdtot_link(url: str):
+    url = re_match(r'https?://.+\.gdtot\.\S+', url)
+    return bool(url)
 
 def new_thread(fn):
     """To use as decorator to make a function call threaded.

@@ -2,13 +2,12 @@ from os import remove as osremove, path as ospath, mkdir
 from threading import Thread
 from PIL import Image
 from telegram.ext import CommandHandler, CallbackQueryHandler
-from bot import AS_DOC_USERS, AS_MEDIA_USERS, dispatcher, AS_DOCUMENT, AUTO_DELETE_MESSAGE_DURATION, DB_URI
+from bot import *
 from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, editMessage, auto_delete_message
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper import button_build
 from bot.helper.ext_utils.db_handler import DbManger
-
 
 def getleechinfo(from_user):
     user_id = from_user.id
@@ -118,4 +117,3 @@ but_set_handler = CallbackQueryHandler(setLeechType, pattern="leechset", run_asy
 dispatcher.add_handler(leech_set_handler)
 dispatcher.add_handler(but_set_handler)
 dispatcher.add_handler(set_thumbnail_handler)
-
