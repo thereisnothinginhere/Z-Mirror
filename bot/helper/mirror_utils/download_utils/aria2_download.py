@@ -31,7 +31,7 @@ def __onDownloadStarted(api, gid):
             sleep(1)
             if dl := getDownloadByGid(gid):
                 listener = dl.listener()
-                if listener.isLeech or listener.select:
+                if listener.select:
                     return
                 download = api.get_download(gid)
                 if not download.is_torrent:
@@ -63,7 +63,7 @@ def __onDownloadStarted(api, gid):
                 sleep(1)
                 limit = None
                 size = download.total_length
-                arch = any([listener.isZip, listener.isLeech, listener.extract])
+                arch = any([listener.isZip, listener.extract])
                 if STORAGE_THRESHOLD is not None:
                     acpt = check_storage_threshold(size, arch, True)
                     if not acpt:

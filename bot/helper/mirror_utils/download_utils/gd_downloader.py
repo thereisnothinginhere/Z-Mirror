@@ -34,7 +34,7 @@ def add_gd_download(link, path, listener, newname):
                 msg = "File/Folder is already available in Drive.\nHere are the search results:"
                 return sendMarkup(msg, listener.bot, listener.message, button)
     if any([ZIP_UNZIP_LIMIT, LEECH_LIMIT, STORAGE_THRESHOLD, TORRENT_DIRECT_LIMIT]):
-        arch = any([listener.extract, listener.isZip, listener.isLeech])
+        arch = any([listener.extract, listener.isZip])
         limit = None
         if STORAGE_THRESHOLD is not None:
             acpt = check_storage_threshold(size, arch)
