@@ -1,10 +1,10 @@
-from re import findall as re_findall
+from re import findall as re_findall, match as re_match
 from threading import Thread, Event
 from time import time
 from math import ceil
 from html import escape
 import psutil
-from psutil import virtual_memory, cpu_percent, disk_usage
+from psutil import *
 from requests import head as rhead
 from urllib.request import urlopen
 from bot import *
@@ -319,6 +319,13 @@ def get_mega_link_type(url: str):
 def is_magnet(url: str):
     magnet = re_findall(MAGNET_REGEX, url)
     return bool(magnet)
+
+def is_appdrive_link(url: str):
+    url = re_match(r'https?://(?:\S*\.)?(?:appdrive|driveapp)\.\S+', url)
+    return bool(url)
+def is_gdtot_link(url: str):
+    url = re_match(r'https?://.+\.gdtot\.\S+', url)
+    return bool(url)
 
 def new_thread(fn):
     """To use as decorator to make a function call threaded.
